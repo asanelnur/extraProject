@@ -15,26 +15,35 @@ class WalletViewSet(ModelViewSet):
 
 class AccountViewSet(ModelViewSet):
     account_service = services.AccountServiceV1()
-    queryset = account_service.get_accounts()
-    serializer_class = serializers.AccountSerializer
+    # queryset = account_service.get_accounts()
+    # serializer_class = serializers.CreateAccountSerializer
     filter_backends = (filter.DjangoFilterBackend,)
     filterset_fields = ('first_name', 'last_name')
 
-    def perform_create(self, serializer: serializers.AccountSerializer):
+    def get_serializer_class(self):
+        print(f'{self.action=}')
+        if self.action in ('list', 'retrieve'):
+            return serializers.RetrieveAccountSerializer
+        return serializers.CreateAccountSerializer
+
+    def get_queryset(self):
+        return self.account_service.get_accounts(action=self.action)
+
+    def perform_create(self, serializer: serializers.CreateAccountSerializer):
         self.account_service.create_account(data=serializer.validated_data)
 
 
 class AccountViewSetV2(ModelViewSet):
     account_service = services.AccountServiceV1()
-    queryset = account_service.get_accounts()
-    serializer_class = serializers.AccountSerializerV2
+    serializer_class = serializers.RetrieveAccountSerializer
     filter_backends = (filter.DjangoFilterBackend,)
     filterset_fields = ('first_name', 'last_name')
 
-    def perform_create(self, serializer: serializers.AccountSerializer):
+    def perform_create(self, serializer: serializers.CreateAccountSerializer):
         self.account_service.create_account(data=serializer.validated_data)
 
-
+    def get_queryset(self):
+        return self.account_service.get_accounts(action=self.action)
 
 #n+1 problem week 10 lecture2
 #prefetch_related
